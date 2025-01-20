@@ -40,8 +40,9 @@ const ButtonSkeleton = () => (
 function Header() {
   return (
     <div className='w-full h-16'>
-      <div className='flex justify-end items-center h-full px-10 mt-5'>
-        <div className='flex items-end gap-2'>
+      <div className='flex justify-between items-center h-full px-14'>
+        <h2 className='text-2xl font-bold'>Cricket Field Planner 🏏</h2>
+        <div className='flex items-center gap-2'>
           <ThemeButton />
         </div>
       </div>
