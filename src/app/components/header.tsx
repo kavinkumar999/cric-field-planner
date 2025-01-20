@@ -39,13 +39,9 @@ const ButtonSkeleton = () => (
 
 function Header() {
   return (
-    <div className='w-full h-16'>
-      <div className='flex justify-between items-center h-full px-14'>
-        <h2 className='text-2xl font-bold'>Cricket Field Planner 🏏</h2>
-        <div className='flex items-center gap-2'>
-          <ThemeButton />
-        </div>
-      </div>
+    <div className='w-full h-16 flex justify-between items-center px-14'>
+      <h2 className='text-2xl font-bold'>Cricket Field Planner 🏏</h2>
+      <ThemeButton />
     </div>
   )
 }

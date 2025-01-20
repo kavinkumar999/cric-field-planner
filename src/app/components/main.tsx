@@ -1,45 +1,14 @@
 "use client"
 
 import { useState, useRef, useCallback } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import type { PlayerPosition, FieldSettings, PositionZone } from "../types/cricket"
+import type { PlayerPosition, FieldSettings } from "../types/cricket"
+import { initialPositions, positionZones } from "../utils/positions"
 
-const positionZones: PositionZone[] = [
-  { name: "wicket-keeper", label: "WK", check: (x, y) => x ** 2 + y ** 2 < 30 ** 2 && y > 0 },
-  { name: "slip", label: "SL", check: (x, y) => x > 0 && y < 0 && x ** 2 + y ** 2 < 100 ** 2 },
-  { name: "gully", label: "GU", check: (x, y) => x > 0 && y > 0 && x ** 2 + y ** 2 < 100 ** 2 },
-  { name: "point", label: "PT", check: (x, y) => x > 50 && y > 50 && x ** 2 + y ** 2 < 200 ** 2 },
-  { name: "cover", label: "CV", check: (x, y) => x > 0 && y > 100 && x ** 2 + y ** 2 < 200 ** 2 },
-  { name: "mid-off", label: "MO", check: (x, y) => x > -50 && x < 50 && y > 150 },
-  { name: "bowler", label: "BW", check: (x, y) => x ** 2 + (y - 150) ** 2 < 30 ** 2 },
-  { name: "mid-on", label: "MN", check: (x, y) => x < 0 && y > 100 && x ** 2 + y ** 2 < 200 ** 2 },
-  { name: "mid-wicket", label: "MW", check: (x, y) => x < -50 && y > 50 && x ** 2 + y ** 2 < 200 ** 2 },
-  { name: "square-leg", label: "SQ", check: (x, y) => x < -100 && y > 0 && x ** 2 + y ** 2 < 200 ** 2 },
-  { name: "fine-leg", label: "FL", check: (x, y) => x < -100 && y < 0 && x ** 2 + y ** 2 < 240 ** 2 },
-  { name: "third-man", label: "TM", check: (x, y) => x > 100 && y < 0 && x ** 2 + y ** 2 < 240 ** 2 },
-  { name: "deep-point", label: "DP", check: (x, y) => x > 150 && y > 50 && x ** 2 + y ** 2 >= 200 ** 2 },
-  { name: "long-off", label: "LO", check: (x, y) => x > 50 && x < 150 && y > 200 },
-  { name: "long-on", label: "LN", check: (x, y) => x < -50 && x > -150 && y > 200 },
-  { name: "deep-mid-wicket", label: "DM", check: (x, y) => x < -150 && y > 50 && x ** 2 + y ** 2 >= 200 ** 2 },
-]
-
-const initialPositions: PlayerPosition[] = [
-  { id: 1, name: "wicket-keeper", label: "WK", x: 0, y: 20, playerName: "Player 1" },
-  { id: 2, name: "bowler", label: "BW", x: 0, y: 150, playerName: "Player 2" },
-  { id: 3, name: "slip", label: "SL", x: 50, y: -20, playerName: "Player 3" },
-  { id: 4, name: "point", label: "PT", x: 120, y: 80, playerName: "Player 4" },
-  { id: 5, name: "cover", label: "CV", x: 80, y: 120, playerName: "Player 5" },
-  { id: 6, name: "mid-off", label: "MO", x: 20, y: 180, playerName: "Player 6" },
-  { id: 7, name: "mid-on", label: "MN", x: -20, y: 180, playerName: "Player 7" },
-  { id: 8, name: "mid-wicket", label: "MW", x: -120, y: 80, playerName: "Player 8" },
-  { id: 9, name: "square-leg", label: "SQ", x: -120, y: 20, playerName: "Player 9" },
-  { id: 10, name: "fine-leg", label: "FL", x: -180, y: -80, playerName: "Player 10" },
-  { id: 11, name: "third-man", label: "TM", x: 180, y: -80, playerName: "Player 11" },
-]
 
 export default function Main() {
   const [positions, setPositions] = useState<PlayerPosition[]>(initialPositions)
@@ -76,7 +45,6 @@ export default function Main() {
               newY = 240 * Math.sin(angle)
             }
 
-            // Check for new position
             const newPosition = positionZones.find((zone) => zone.check(newX, newY))
 
             return {
@@ -113,23 +81,36 @@ export default function Main() {
     const svg = document.querySelector(".cricket-field") as SVGElement
     if (!svg) return
 
-    const svgData = new XMLSerializer().serializeToString(svg)
+    const svgClone = svg.cloneNode(true) as SVGElement
+    
+    const bgCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle")
+    bgCircle.setAttribute("cx", "0")
+    bgCircle.setAttribute("cy", "0")
+    bgCircle.setAttribute("r", "240")
+    bgCircle.setAttribute("fill", "#16a34a")
+    svgClone.insertBefore(bgCircle, svgClone.firstChild)
+
+    const svgData = new XMLSerializer().serializeToString(svgClone)
     const canvas = document.createElement("canvas")
     const ctx = canvas.getContext("2d")
     const img = new Image()
 
     img.onload = () => {
-      canvas.width = img.width
-      canvas.height = img.height
-      ctx?.drawImage(img, 0, 0)
+      canvas.width = 500
+      canvas.height = 500
+      if (ctx) {
+        ctx.fillStyle = "#000000"
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(img, 0, 0)
+      }
       const pngFile = canvas.toDataURL("image/png")
       const downloadLink = document.createElement("a")
-      downloadLink.download = "cricket-field.png"
+      downloadLink.download = "cricket-field-planner.png"
       downloadLink.href = pngFile
       downloadLink.click()
     }
 
-    img.src = "data:image/svg+xml;base64," + btoa(svgData)
+    img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)))
   }
 
   return (
@@ -150,7 +131,41 @@ export default function Main() {
               <circle cx="0" cy="0" r="150" fill="none" stroke="white" strokeWidth="2" />
 
               {/* Pitch */}
-              <rect x="-10" y="-30" width="20" height="60" fill="tan" stroke="white" />
+              <rect x="-10" y="-40" width="20" height="80" fill="tan" stroke="white" />
+
+              {/* Cricket Ball */}
+              <circle 
+                cx="0" 
+                cy="40" 
+                r="6" 
+                fill="red" 
+                stroke="white" 
+                strokeWidth="0.5"
+              />
+
+              {/* Cricket Bat */}
+              <g transform="translate(7, -47) rotate(45)">
+                {/* Bat handle */}
+                <rect 
+                  x="-1" 
+                  y="-12" 
+                  width="2" 
+                  height="12" 
+                  fill="#5C4033" 
+                  stroke="white" 
+                  strokeWidth="0.5"
+                />
+                {/* Bat blade */}
+                <rect 
+                  x="-2.5" 
+                  y="0" 
+                  width="5" 
+                  height="15" 
+                  fill="#A0522D" 
+                  stroke="white" 
+                  strokeWidth="0.5"
+                />
+              </g>
 
               {/* Players */}
               {positions.map((pos) => (
@@ -162,12 +177,24 @@ export default function Main() {
                 >
                   <circle r="8" fill={pos.name === "bowler" ? "red" : "blue"} />
                   {settings.showNames && (
-                    <text y="20" textAnchor="middle" fill="white" className="text-xs">
+                    <text 
+                      y="20" 
+                      textAnchor="middle" 
+                      fill="white" 
+                      className="text-sm text-[10px]"
+                      style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.5)' }}
+                    >
                       {pos.playerName}
                     </text>
                   )}
                   {settings.showPositions && (
-                    <text y="-12" textAnchor="middle" fill="white" className="text-xs">
+                    <text 
+                      y="-12" 
+                      textAnchor="middle" 
+                      fill="black"
+                      className="text-[7px]"
+                      style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.5)' }}
+                    >
                       {pos.label}
                     </text>
                   )}
@@ -179,10 +206,7 @@ export default function Main() {
       </div>
 
       <Card className="w-full lg:w-80">
-        <CardHeader>
-          <CardTitle>Settings</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 mt-5">
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <Checkbox
