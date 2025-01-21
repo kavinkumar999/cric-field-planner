@@ -15,6 +15,7 @@ export default function Main() {
   const [settings, setSettings] = useState<FieldSettings>({
     showNames: true,
     showPositions: true,
+    isLeftHanded: false,
   })
   const [draggedPlayer, setDraggedPlayer] = useState<number | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -144,7 +145,7 @@ export default function Main() {
               />
 
               {/* Cricket Bat */}
-              <g transform="translate(7, -47) rotate(45)">
+              <g transform={`translate(${settings.isLeftHanded ? -7 : 7}, -47) rotate(${settings.isLeftHanded ? -45 : 45})`}>
                 {/* Bat handle */}
                 <rect 
                   x="-1" 
@@ -195,7 +196,7 @@ export default function Main() {
                       className="text-[7px]"
                       style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.5)' }}
                     >
-                      {pos.label}
+                      {pos.name}
                     </text>
                   )}
                 </g>
@@ -223,6 +224,14 @@ export default function Main() {
                 onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, showPositions: checked as boolean }))}
               />
               <Label htmlFor="showPositions">Show Positions</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isLeftHanded"
+                checked={settings.isLeftHanded}
+                onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, isLeftHanded: checked as boolean }))}
+              />
+              <Label htmlFor="isLeftHanded">Left Handed</Label>
             </div>
           </div>
 

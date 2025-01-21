@@ -13,6 +13,7 @@ export interface PlayerPosition extends Position {
 export interface FieldSettings {
   showNames: boolean
   showPositions: boolean
+  isLeftHanded: boolean
 }
 
 export interface PositionZone {
