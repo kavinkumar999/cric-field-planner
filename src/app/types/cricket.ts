@@ -1,7 +1,6 @@
 export interface Position {
   id: number
   name: string
-  label: string
   x: number
   y: number
 }
@@ -18,6 +17,5 @@ export interface FieldSettings {
 
 export interface PositionZone {
   name: string
-  label: string
   check: (x: number, y: number) => boolean
 }

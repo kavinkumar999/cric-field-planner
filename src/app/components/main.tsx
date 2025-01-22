@@ -13,7 +13,7 @@ import { initialPositions, positionZones } from "../utils/positions"
 export default function Main() {
   const [positions, setPositions] = useState<PlayerPosition[]>(initialPositions)
   const [settings, setSettings] = useState<FieldSettings>({
-    showNames: true,
+    showNames: false,
     showPositions: true,
     isLeftHanded: false,
   })
@@ -52,8 +52,7 @@ export default function Main() {
               ...pos,
               x: newX,
               y: newY,
-              name: newPosition ? newPosition.name : pos.name,
-              label: newPosition ? newPosition.label : pos.label,
+              name: newPosition ? newPosition.name : pos.name
             }
           }
           return pos
@@ -134,16 +133,6 @@ export default function Main() {
               {/* Pitch */}
               <rect x="-10" y="-40" width="20" height="80" fill="tan" stroke="white" />
 
-              {/* Cricket Ball */}
-              <circle 
-                cx="0" 
-                cy="40" 
-                r="6" 
-                fill="red" 
-                stroke="white" 
-                strokeWidth="0.5"
-              />
-
               {/* Cricket Bat */}
               <g transform={`translate(${settings.isLeftHanded ? -7 : 7}, -47) rotate(${settings.isLeftHanded ? -45 : 45})`}>
                 {/* Bat handle */}
@@ -174,15 +163,22 @@ export default function Main() {
                   key={pos.id}
                   transform={`translate(${pos.x},${pos.y})`}
                   onMouseDown={() => handleMouseDown(pos.id)}
-                  className="cursor-move"
+                   className="cursor-move"
                 >
-                  <circle r="8" fill={pos.name === "bowler" ? "red" : "blue"} />
+                  <circle 
+                    r="8" 
+                    fill={
+                      pos.id === 1 ? "#9333ea" :  // Purple for wicket keeper
+                      pos.id === 2 ? "#facc2e" :  // Yellow for bowler
+                      "#2563eb"                   // Blue for other players
+                    } 
+                  />
                   {settings.showNames && (
                     <text 
                       y="20" 
                       textAnchor="middle" 
                       fill="white" 
-                      className="text-sm text-[10px]"
+                      className="text-[10px]"
                       style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.5)' }}
                     >
                       {pos.playerName}
