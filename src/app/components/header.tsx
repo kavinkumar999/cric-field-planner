@@ -3,6 +3,13 @@
 import React, { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+
+interface HeaderProps {
+  devMode: boolean
+  onDevModeChange: (checked: boolean) => void
+}
 
 const ThemeButton = () => {
   const { resolvedTheme, setTheme } = useTheme();
@@ -37,13 +44,27 @@ const ButtonSkeleton = () => (
   </div>
 );
 
-function Header() {
+function Header({ devMode, onDevModeChange }: HeaderProps) {
   return (
     <div className='w-full h-16 flex justify-between items-center px-14'>
       <h2 className='text-2xl font-bold'>Cricket Field Planner 🏏</h2>
-      <ThemeButton />
+     
+      <div className='flex items-center gap-3'>
+        {process.env.NODE_ENV === 'development' && (
+            <div className="flex items-center gap-3">
+              <Label htmlFor="devMode" className="text-sm font-medium">
+                Developer Mode
+              </Label>
+              <Switch
+                id="devMode"
+                checked={devMode}
+                onCheckedChange={onDevModeChange}
+              />
+            </div>
+          )}
+           <ThemeButton />
+      </div>
     </div>
   )
 }
-
 export default Header;

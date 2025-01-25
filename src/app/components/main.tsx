@@ -1,24 +1,40 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import type { PlayerPosition, FieldSettings } from "../types/cricket"
-import { initialPositions, positionZones } from "../utils/positions"
+import { rightHandPositionZones, leftHandPositionZones, positionNames, getPositionName, rightHandInitialPositions, leftHandInitialPositions } from "../utils/positions"
 
+interface MainProps {
+  devMode: boolean;
+}
 
-export default function Main() {
-  const [positions, setPositions] = useState<PlayerPosition[]>(initialPositions)
+export default function Main({ devMode }: MainProps) {
   const [settings, setSettings] = useState<FieldSettings>({
     showNames: false,
     showPositions: true,
     isLeftHanded: false,
   })
+  const [positions, setPositions] = useState<PlayerPosition[]>(() => 
+    rightHandInitialPositions.map(pos => ({
+      ...pos,
+      name: pos.id === 1 ? positionNames.wicketKeeper : 
+            pos.id === 2 ? positionNames.bowler :
+            getPositionName(pos.x, pos.y, false)
+    }))
+  )
+ 
   const [draggedPlayer, setDraggedPlayer] = useState<number | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
+
+  useEffect(() => {
+    const newInitialPositions = settings.isLeftHanded ? leftHandInitialPositions : rightHandInitialPositions
+    setPositions(newInitialPositions)
+  }, [settings.isLeftHanded])
 
   const handleMouseDown = useCallback((id: number) => {
     setDraggedPlayer(id)
@@ -40,13 +56,15 @@ export default function Main() {
             const distance = Math.sqrt(svgPoint.x ** 2 + svgPoint.y ** 2)
             let newX = svgPoint.x
             let newY = svgPoint.y
+
             if (distance > 240) {
               const angle = Math.atan2(svgPoint.y, svgPoint.x)
               newX = 240 * Math.cos(angle)
               newY = 240 * Math.sin(angle)
             }
 
-            const newPosition = positionZones.find((zone) => zone.check(newX, newY))
+            const zones = settings.isLeftHanded ? leftHandPositionZones : rightHandPositionZones
+            const newPosition = zones.find((zone) => zone.check(newX, newY))
 
             return {
               ...pos,
@@ -59,7 +77,7 @@ export default function Main() {
         }),
       )
     },
-    [draggedPlayer],
+    [draggedPlayer, settings.isLeftHanded]
   )
 
   const handleMouseUp = useCallback(() => {
@@ -127,8 +145,51 @@ export default function Main() {
               onMouseLeave={handleMouseUp}
             >
               {/* Field circles */}
-              <circle cx="0" cy="0" r="240" fill="none" stroke="white" strokeWidth="2" />
+              <circle cx="0" cy="0" r="245" fill="none" stroke="white" strokeWidth="2" />
               <circle cx="0" cy="0" r="150" fill="none" stroke="white" strokeWidth="2" />
+
+              {/* Dev mode elements */}
+              {devMode && process.env.NODE_ENV === 'development' && (
+                <>
+                  <circle cx="0" cy="0" r="100" fill="none" stroke="white" strokeWidth="2" />
+                  <circle cx="0" cy="0" r="50" fill="none" stroke="white" strokeWidth="2" />
+                  <circle cx="0" cy="0" r="25" fill="none" stroke="white" strokeWidth="2" />
+                  <line x1="-245" y1="-30" x2="245" y2="-30" stroke="white" strokeWidth="2" />
+                  <line x1="0" y1="-245" x2="0" y2="245" stroke="white" strokeWidth="2" />
+                  <line x1="0" y1="-30" x2="245" y2="245" stroke="blue" strokeWidth="2" />
+                  <line x1="0" y1="-30" x2="-245" y2="-245" stroke="blue" strokeWidth="2" />
+                  <line x1="0" y1="-30" x2="245" y2="-245" stroke="red" strokeWidth="2" />
+                  <line x1="0" y1="-30" x2="-245" y2="245" stroke="red" strokeWidth="2" />
+                  {/* Coordinate Labels */}
+                  {/* X-axis positive */}
+                  <text x="50" y="15" fill="white" fontSize="12" textAnchor="middle">50</text>
+                  <text x="100" y="15" fill="white" fontSize="12" textAnchor="middle">100</text>
+                  <text x="150" y="15" fill="white" fontSize="12" textAnchor="middle">150</text>
+                  <text x="200" y="15" fill="white" fontSize="12" textAnchor="middle">200</text>
+
+                  {/* X-axis negative */}
+                  <text x="-50" y="15" fill="white" fontSize="12" textAnchor="middle">-50</text>
+                  <text x="-100" y="15" fill="white" fontSize="12" textAnchor="middle">-100</text>
+                  <text x="-150" y="15" fill="white" fontSize="12" textAnchor="middle">-150</text>
+                  <text x="-200" y="15" fill="white" fontSize="12" textAnchor="middle">-200</text>
+
+                  {/* Y-axis positive */}
+                  <text x="15" y="50" fill="white" fontSize="12" textAnchor="start">50</text>
+                  <text x="15" y="100" fill="white" fontSize="12" textAnchor="start">100</text>
+                  <text x="15" y="150" fill="white" fontSize="12" textAnchor="start">150</text>
+                  <text x="15" y="200" fill="white" fontSize="12" textAnchor="start">200</text>
+
+                  {/* Y-axis negative */}
+                  <text x="15" y="-50" fill="white" fontSize="12" textAnchor="start">-50</text>
+                  <text x="15" y="-100" fill="white" fontSize="12" textAnchor="start">-100</text>
+                  <text x="15" y="-150" fill="white" fontSize="12" textAnchor="start">-150</text>
+                  <text x="15" y="-200" fill="white" fontSize="12" textAnchor="start">-200</text>
+
+                  {/* Axes */}
+                  <line x1="-245" y1="0" x2="245" y2="0" stroke="white" strokeWidth="1" />
+                  <line x1="0" y1="-245" x2="0" y2="245" stroke="white" strokeWidth="1" />
+                </>
+              )}
 
               {/* Pitch */}
               <rect x="-10" y="-40" width="20" height="80" fill="tan" stroke="white" />
@@ -163,15 +224,17 @@ export default function Main() {
                   key={pos.id}
                   transform={`translate(${pos.x},${pos.y})`}
                   onMouseDown={() => handleMouseDown(pos.id)}
-                   className="cursor-move"
+                  className="cursor-move"
                 >
                   <circle 
-                    r="8" 
+                    r="6" 
                     fill={
                       pos.id === 1 ? "#9333ea" :  // Purple for wicket keeper
                       pos.id === 2 ? "#facc2e" :  // Yellow for bowler
                       "#2563eb"                   // Blue for other players
                     } 
+                    stroke="white"
+                    strokeWidth="0.5"
                   />
                   {settings.showNames && (
                     <text 
@@ -233,14 +296,53 @@ export default function Main() {
 
           <div className="space-y-4">
             <h3 className="font-medium">Player Names</h3>
-            {positions.map((pos) => (
-              <Input
-                key={pos.id}
-                placeholder={`Player ${pos.id}`}
-                value={pos.playerName}
-                onChange={(e) => handleNameChange(pos.id, e.target.value)}
-              />
-            ))}
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#9333ea]" />
+                <Input
+                  key={positions[0].id}
+                  placeholder="Wicket Keeper"
+                  value={positions[0].playerName}
+                  onChange={(e) => handleNameChange(positions[0].id, e.target.value)}
+                  className="border-[#9333ea] focus-visible:ring-[#9333ea]"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#facc2e]" />
+                <Input
+                  key={positions[1].id}
+                  placeholder="Bowler"
+                  value={positions[1].playerName}
+                  onChange={(e) => handleNameChange(positions[1].id, e.target.value)}
+                  className="border-[#facc2e] focus-visible:ring-[#facc2e]"
+                />
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="px-2 text-muted-foreground">Other Players</span>
+              </div>
+            </div>
+
+            {/* Other Players */}
+            <div className="space-y-2">
+              {positions.slice(2).map((pos) => (
+                <div key={pos.id} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#2563eb]" />
+                  <Input
+                    placeholder={`Player ${pos.id}`}
+                    value={pos.playerName}
+                    onChange={(e) => handleNameChange(pos.id, e.target.value)}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           <Button onClick={downloadImage} className="w-full">
