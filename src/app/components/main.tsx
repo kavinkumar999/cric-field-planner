@@ -7,7 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import type { PlayerPosition, FieldSettings } from "../types/cricket"
-import { rightHandPositionZones, leftHandPositionZones, positionNames, getPositionName, rightHandInitialPositions, leftHandInitialPositions } from "../utils/positions"
+import { rightHandPositionZones, leftHandPositionZones, getPositionName, rightHandInitialPositions, leftHandInitialPositions } from "../utils/helpers"
+import { positionNames } from "../utils/constants"
 
 interface MainProps {
   devMode: boolean;
@@ -53,24 +54,19 @@ export default function Main({ devMode }: MainProps) {
       setPositions((prev) =>
         prev.map((pos) => {
           if (pos.id === draggedPlayer) {
-            const distance = Math.sqrt(svgPoint.x ** 2 + svgPoint.y ** 2)
-            let newX = svgPoint.x
-            let newY = svgPoint.y
-
-            if (distance > 240) {
-              const angle = Math.atan2(svgPoint.y, svgPoint.x)
-              newX = 240 * Math.cos(angle)
-              newY = 240 * Math.sin(angle)
-            }
+            const newX = svgPoint.x
+            const newY = svgPoint.y
 
             const zones = settings.isLeftHanded ? leftHandPositionZones : rightHandPositionZones
             const newPosition = zones.find((zone) => zone.check(newX, newY))
+
+            const updatedPosition = newPosition ? newPosition.name : pos.name
 
             return {
               ...pos,
               x: newX,
               y: newY,
-              name: newPosition ? newPosition.name : pos.name
+              name: pos.id === 1 || pos.id === 2 ? pos.name : updatedPosition
             }
           }
           return pos
@@ -241,7 +237,7 @@ export default function Main({ devMode }: MainProps) {
                       y="20" 
                       textAnchor="middle" 
                       fill="white" 
-                      className="text-[10px]"
+                      className="text-[8px]"
                       style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.5)' }}
                     >
                       {pos.playerName}
