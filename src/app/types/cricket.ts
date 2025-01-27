@@ -13,6 +13,7 @@ export interface FieldSettings {
   showNames: boolean
   showPositions: boolean
   isLeftHanded: boolean
+  heading: string
 }
 
 export interface PositionZone {

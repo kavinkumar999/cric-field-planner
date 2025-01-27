@@ -9,17 +9,22 @@ import { Label } from "@/components/ui/label"
 import type { PlayerPosition, FieldSettings } from "../types/cricket"
 import { rightHandPositionZones, leftHandPositionZones, getPositionName, rightHandInitialPositions, leftHandInitialPositions } from "../utils/helpers"
 import { positionNames } from "../utils/constants"
+import { ShareModal } from "./share-modal"
+import { nanoid } from 'nanoid'
 
 interface MainProps {
   devMode: boolean;
+  initialData?: any;
 }
 
-export default function Main({ devMode }: MainProps) {
+export default function Main({ devMode, initialData }: MainProps) {
   const [settings, setSettings] = useState<FieldSettings>({
     showNames: false,
     showPositions: true,
     isLeftHanded: false,
+    heading: '',
   })
+  console.log(initialData)
   const [positions, setPositions] = useState<PlayerPosition[]>(() => 
     rightHandInitialPositions.map(pos => ({
       ...pos,
@@ -31,6 +36,8 @@ export default function Main({ devMode }: MainProps) {
  
   const [draggedPlayer, setDraggedPlayer] = useState<number | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [shareUrl, setShareUrl] = useState("")
 
   useEffect(() => {
     const newInitialPositions = settings.isLeftHanded ? leftHandInitialPositions : rightHandInitialPositions
@@ -127,6 +134,34 @@ export default function Main({ devMode }: MainProps) {
     img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)))
   }
 
+  const handleShare = async () => {
+    try {
+      const shareData = {
+        id: nanoid(),
+        settings,
+        positions,
+        createdAt: new Date().toISOString()
+      }
+
+      const response = await fetch('/api/share', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(shareData)
+      })
+
+      if (!response.ok) throw new Error('Failed to share')
+
+      const { id } = await response.json()
+      const url = `${window.location.origin}/share/${id}`
+      setShareUrl(url)
+      setShareModalOpen(true)
+    } catch (error) {
+      console.error('Share failed:', error)
+    }
+  }
+
   return (
     <div className="container mx-auto p-4 flex flex-col lg:flex-row gap-4">
       <div className="flex-1">
@@ -140,6 +175,21 @@ export default function Main({ devMode }: MainProps) {
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
             >
+              {/* Heading text */}
+              {settings.heading && (
+                <text
+                  x="0"
+                  y="-220"
+                  textAnchor="middle"
+                  fill="white"
+                  fontSize="16"
+                  fontWeight="bold"
+                  style={{ textShadow: '2px 2px 2px rgba(0,0,0,0.5)' }}
+                >
+                  {settings.heading}
+                </text>
+              )}
+
               {/* Field circles */}
               <circle cx="0" cy="0" r="245" fill="none" stroke="white" strokeWidth="2" />
               <circle cx="0" cy="0" r="150" fill="none" stroke="white" strokeWidth="2" />
@@ -264,6 +314,15 @@ export default function Main({ devMode }: MainProps) {
       <Card className="w-full lg:w-80">
         <CardContent className="space-y-4 mt-5">
           <div className="space-y-2">
+            <Label htmlFor="heading">Custom Title</Label>
+            <Input
+              id="heading"
+              placeholder="Enter heading"
+              value={settings.heading}
+              onChange={(e) => setSettings(prev => ({ ...prev, heading: e.target.value.slice(0, 15) }))}
+            />
+          </div>
+          <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="showNames"
@@ -341,11 +400,24 @@ export default function Main({ devMode }: MainProps) {
             </div>
           </div>
 
-          <Button onClick={downloadImage} className="w-full">
-            Download Image
-          </Button>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <Button onClick={downloadImage} className="flex-1">
+                Download Image
+              </Button>
+              <Button onClick={handleShare} variant="outline" className="flex-1">
+                Share Link
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
+
+      <ShareModal 
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        shareUrl={shareUrl}
+      />
     </div>
   )
 }
