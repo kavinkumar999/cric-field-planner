@@ -100,9 +100,24 @@ export default function Main({ devMode }: MainProps) {
     const bgCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle")
     bgCircle.setAttribute("cx", "0")
     bgCircle.setAttribute("cy", "0")
-    bgCircle.setAttribute("r", "240")
+    bgCircle.setAttribute("r", "245")
     bgCircle.setAttribute("fill", "#16a34a")
     svgClone.insertBefore(bgCircle, svgClone.firstChild)
+
+    const texts = svgClone.querySelectorAll('text')
+    texts.forEach(text => {
+      if (text.getAttribute('y')?.startsWith('-')) {
+        text.setAttribute('font-size', '8')
+      }
+      else if (text.getAttribute('y') === '20') {
+        text.setAttribute('font-size', '9')
+      }
+      else {
+        text.setAttribute('font-size', '8')
+      }
+      text.setAttribute('stroke', 'white')
+      text.setAttribute('stroke-width', '0')
+    })
 
     const svgData = new XMLSerializer().serializeToString(svgClone)
     const canvas = document.createElement("canvas")
@@ -110,8 +125,8 @@ export default function Main({ devMode }: MainProps) {
     const img = new Image()
 
     img.onload = () => {
-      canvas.width = 500
-      canvas.height = 500
+      canvas.width = 800
+      canvas.height = 800
       if (ctx) {
         ctx.fillStyle = "#000000"
         ctx.fillRect(0, 0, canvas.width, canvas.height)
