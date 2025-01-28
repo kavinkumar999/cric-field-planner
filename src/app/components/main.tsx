@@ -19,6 +19,7 @@ export default function Main({ devMode }: MainProps) {
     showNames: false,
     showPositions: true,
     isLeftHanded: false,
+    heading: '',
   })
   const [positions, setPositions] = useState<PlayerPosition[]>(() => 
     rightHandInitialPositions.map(pos => ({
@@ -115,6 +116,10 @@ export default function Main({ devMode }: MainProps) {
       else {
         text.setAttribute('font-size', '8')
       }
+      // Custom title font size update
+      if (text.textContent === settings.heading) {
+        text.setAttribute('font-size', '16')
+      }
       text.setAttribute('stroke', 'white')
       text.setAttribute('stroke-width', '0')
     })
@@ -155,6 +160,21 @@ export default function Main({ devMode }: MainProps) {
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
             >
+              {/* Heading text */}
+              {settings.heading && (
+                <text
+                  x="0"
+                  y="-220"
+                  textAnchor="middle"
+                  fill="white"
+                  fontSize="16"
+                  fontWeight="bold"
+                  style={{ textShadow: '2px 2px 2px rgba(0,0,0,0.5)' }}
+                >
+                  {settings.heading}
+                </text>
+              )}
+
               {/* Field circles */}
               <circle cx="0" cy="0" r="245" fill="none" stroke="white" strokeWidth="2" />
               <circle cx="0" cy="0" r="150" fill="none" stroke="white" strokeWidth="2" />
@@ -278,6 +298,15 @@ export default function Main({ devMode }: MainProps) {
 
       <Card className="w-full lg:w-80">
         <CardContent className="space-y-4 mt-5">
+          <div className="space-y-2">
+            <Label htmlFor="heading">Custom Title</Label>
+            <Input
+              id="heading"
+              placeholder="Enter heading"
+              value={settings.heading}
+              onChange={(e) => setSettings(prev => ({ ...prev, heading: e.target.value.slice(0, 15) }))}
+            />
+          </div>
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <Checkbox
